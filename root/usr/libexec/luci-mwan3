@@ -48,32 +48,39 @@ usage() {
 
 diag_gateway() {
 	local iface="$1"
-
+	local ip_family="$2"
 	local gw
 
-	network_get_gateway gw "${iface}"
-	[ -z "$gw" ] && network_get_gateway gw "${iface}_4"
+	if [ "$ip_family" = "-6" ]; then
+		network_get_gateway6 gw "$iface"
+		[ -z "$gw" ] && network_get_gateway6 gw "${iface}_6"
+	else
+		network_get_gateway gw "$iface"
+		[ -z "$gw" ] && network_get_gateway gw "${iface}_4"
+	fi
 
 	[ -z "$gw" ] && {
 		echo "No gateway for interface ${iface} found."
 		exit 2
 	}
 
-	mwan3 use "$iface" "ping" "-c" "5" "-W" "1" "$gw"
+	mwan3 use "$iface" "ping" "$ip_family" "-c" "5" "-W" "1" "$gw"
 }
 
 diag_tracking() {
 	local iface="$1"
+	local ip_family="$2"
 
 	checkips() {
 		local ip="$1"
 		local iface="$2"
+		local ip_family="$3"
 
-		mwan3 use "$iface" "ping" "-c" "5" "-W" "1" "$ip"
+		mwan3 use "$iface" "ping" "$ip_family" "-c" "5" "-W" "1" "$ip"
 	}
 
 	config_load mwan3
-	config_list_foreach "$iface" "track_ip" checkips "$iface"
+	config_list_foreach "$iface" "track_ip" checkips "$iface" "$ip_family"
 }
 
 iface_number() {
@@ -89,6 +96,7 @@ iface_number() {
 
 diag_rules() {
 	local iface="$1"
+	local ip_family="$2"
 
 	local number=0
 	local iif_base fwmark_base unreachable_base
@@ -114,13 +122,13 @@ diag_rules() {
 	fwmark_prio=$((fwmark_base + ID))
 	unreachable_prio=$((unreachable_base + ID))
 
-	iif_rule="$(ip rule | grep "^${iif_prio}:")"
+	iif_rule="$(ip "$ip_family" rule | grep "^${iif_prio}:")"
 	iif_result="$?"
 
-	fwmark_rule="$(ip rule | grep "^${fwmark_prio}:")"
+	fwmark_rule="$(ip "$ip_family" rule | grep "^${fwmark_prio}:")"
 	fwmark_result="$?"
 
-	unreachable_rule="$(ip rule | grep "^${unreachable_prio}:")"
+	unreachable_rule="$(ip "$ip_family" rule | grep "^${unreachable_prio}:")"
 	unreachable_result="$?"
 
 	echo "IP rules for interface \"$iface\" (index $ID):"
@@ -163,6 +171,7 @@ diag_rules() {
 
 diag_routes() {
 	local iface="$1"
+	local ip_family="$2"
 
 	local table table_result
 
@@ -174,7 +183,7 @@ diag_routes() {
 		exit 2
 	}
 
-	table="$(ip route list table $ID)"
+	table="$(ip "$ip_family" route list table "$ID")"
 	table_result="$?"
 
 	if [ "$table_result" = 0 ]; then
@@ -186,18 +195,28 @@ diag_routes() {
 }
 
 diag_cmd() {
+	local family ip_family
+
+	config_load mwan3
+	config_get family "$2" family ipv4
+	case "$family" in
+		ipv4) ip_family="-4" ;;
+		ipv6) ip_family="-6" ;;
+		*) usage "1" "Unsupported address family: $family" ;;
+	esac
+
 	case "$1" in
 		gateway)
-			diag_gateway "$2"
+			diag_gateway "$2" "$ip_family"
 			;;
 		tracking)
-			diag_tracking "$2"
+			diag_tracking "$2" "$ip_family"
 			;;
 		rules)
-			diag_rules "$2"
+			diag_rules "$2" "$ip_family"
 			;;
 		routes)
-			diag_routes "$2"
+			diag_routes "$2" "$ip_family"
 			;;
 		*)
 			usage "1" "Command not supported"

@@ -45,8 +45,10 @@ return view.extend({
 			_('%s: Name of the action that triggered this event').format('$ACTION') + '<br />' +
 			_('* %s: Is called by netifd and mwan3track').format('ifup') + '<br />' +
 			_('* %s: Is called by netifd and mwan3track').format('ifdown') + '<br />' +
+			_('* %s: Is called by netifd on in-place address or route updates without bringing the interface down').format('ifupdate') + '<br />' +
+			_('On ifupdate, mwan3 refreshes interface routing and the tracking source address without changing the tracked online/offline state.') + '<br />' +
 			_('* %s: Is only called by mwan3track if tracking was successful').format('connected') + '<br />' +
-			_('* %s: Is only called by mwan3track if tracking has failed').format('disonnected') + '<br />' +
+			_('* %s: Is only called by mwan3track if tracking has failed').format('disconnected') + '<br />' +
 			_('%s: Name of the interface which went up or down (e.g. "wan" or "wwan")').format('$INTERFACE') + '<br />' +
 			_('%s: Name of Physical device which interface went up or down (e.g. "eth0" or "wwan0")').format('$DEVICE') + '<br />'),
 			this.editor.render()

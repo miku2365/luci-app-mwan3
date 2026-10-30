@@ -200,7 +200,7 @@ msgstr ""
 "用于捕获被标记发往该接口、但在 fwmark 查找时无法路由的数据包。源地址规则处理路由器自身以该 WAN IP 为源地址发起的流量，"
 "确保应答从正确的 WAN 出去。缺少 iif 规则可能导致回程流量路由错误或被丢弃；缺少 fwmark 规则会导致该接口的策略路由完全失效；"
 "缺少 unreachable 规则可能导致离线接口的流量静默穿透到其他 WAN；缺少源地址规则可能导致路由器自身发起的回复流量从错误的 "
-"WAN 发出。在探测器软故障导致接口离线时，这些规则均会保留，mwan3 会在防火墙策略中避开该接口；而在硬件 ifdown "
+"WAN 发出。在探测器软故障导致接口离线时，这些规则均会保留，mwan3 会在防火墙策略中避开该接口；而在接口实际下线（ifdown） "
 "时会移除 iif、fwmark 和源地址规则并清空其路由表，但 unreachable 兜底规则会贯穿服务生命周期直到 "
 "mwan3 停止。"
 
@@ -1488,7 +1488,7 @@ msgstr "任务"
 
 #: applications/luci-app-mwan3/htdocs/luci-static/resources/view/mwan3/network/simulator.js:175
 msgid "Terminal policy"
-msgstr "终端策略"
+msgstr "终结策略"
 
 #: applications/luci-app-mwan3/htdocs/luci-static/resources/view/mwan3/status/routing.js:186
 msgid ""
@@ -1880,7 +1880,7 @@ msgid ""
 msgstr ""
 "iif 代表输入接口 (incoming interface)。该规则指示：任何从该 WAN 设备接收到的数据包，均在路由表 "
 "N 中进行路由查找。其作用是回程路径路由 —— 当互联网对端通过该 WAN 给予应答时，必须经由同一个 WAN 回送给局域网客户端，"
-"而非听由主路由表随意选择。没有此规则，非对称路由会导致 TCP 连接异常中断。mwan3 仅在硬件级 ifdown 时才会移除此规则；"
+"而非听由主路由表随意选择。没有此规则，非对称路由会导致 TCP 连接异常中断。mwan3 仅在接口实际下线（ifdown） 时才会移除此规则；"
 "而探测器软故障时会保留该规则，因此当接口显示离线时依然看到此规则存在是完全正常且符合预期的。"
 
 #: applications/luci-app-mwan3/htdocs/luci-static/resources/view/mwan3/status/routing.js:113
@@ -2024,7 +2024,7 @@ msgstr ""
 "的数据包，均在路由表 N 中进行路由查找。它为路由器自身以 WAN 本机地址对外发起的流量提供回程路由保障：从该地址发起的路由查找将定位回其自身的 "
 "WAN，确保路由器发出的应答报文保持正确的源地址并从原始流量流入的 WAN 离开，而不是走主路由表。典型应用如 WireGuard："
 "绑定到某个 WAN 地址的隧道必须在该 WAN 上响应对端。mwan3 在 ifup 和 connected 事件时安装这些规则，"
-"在硬件 ifdown 时将其移除；而探测器软故障时同样保留它们。与服务生命周期始终常驻的 unreachable 规则不同，"
+"在接口实际下线（ifdown） 时将其移除；而探测器软故障时同样保留它们。与服务生命周期始终常驻的 unreachable 规则不同，"
 "源地址规则在服务停止时会被清理。若设备拥有多个全局 IPv4 地址，则每个地址都会获得一条同等优先级的规则。源地址规则仅存在于 "
 "IPv4 接口，因此不会在其他接口行中显示。"
 
@@ -2073,3 +2073,19 @@ msgstr "个警告"
 #: applications/luci-app-mwan3/htdocs/luci-static/resources/view/mwan3/network/simulator.js:201
 msgid "weight"
 msgstr "权重 (Weight)"
+
+#: applications/luci-app-mwan3/htdocs/luci-static/resources/view/mwan3/network/notify.js
+msgid "* %s: Is called by netifd on in-place address or route updates without bringing the interface down"
+msgstr "* %s：由 netifd 在接口保持启用时原地更新地址或路由后触发"
+
+#: applications/luci-app-mwan3/htdocs/luci-static/resources/view/mwan3/network/notify.js
+msgid "On ifupdate, mwan3 refreshes interface routing and the tracking source address without changing the tracked online/offline state."
+msgstr "收到 ifupdate 时，mwan3 会刷新接口路由和探测源地址，保留探测器当前的在线或离线状态。"
+
+#: applications/luci-app-mwan3/htdocs/luci-static/resources/view/mwan3/status/routing.js
+msgid "Connecting"
+msgstr "正在连接"
+
+#: applications/luci-app-mwan3/htdocs/luci-static/resources/view/mwan3/status/routing.js
+msgid "Disconnecting"
+msgstr "正在断开"

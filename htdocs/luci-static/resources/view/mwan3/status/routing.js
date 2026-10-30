@@ -70,9 +70,17 @@ function renderIfaceCard(ifname, d) {
 	var statusSeverity = online  ? 'success'
 	                   : offline ? 'danger'
 	                   :           'muted';
-	var statusLabel = online  ? _('Online')
-	                : offline ? _('Offline')
-	                :           (d.status || _('Unknown'));
+	var statusLabel;
+	switch (d.status) {
+		case 'online': statusLabel = _('Online'); break;
+		case 'offline': statusLabel = _('Offline'); break;
+		case 'disabled': statusLabel = _('Disabled'); break;
+		case 'connecting': statusLabel = _('Connecting'); break;
+		case 'disconnecting': statusLabel = _('Disconnecting'); break;
+		case 'notracking': statusLabel = _('No Tracking'); break;
+		case 'paused': statusLabel = _('Paused'); break;
+		default: statusLabel = _('Unknown');
+	}
 
 	var unreach = d.unreach_rule || {};
 	var expect  = online ? true : null;
