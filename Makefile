@@ -11,10 +11,15 @@ PKG_LICENSE:=GPL-2.0
 PKG_SRC_PREFIX:=$(shell date +%y).999
 PKG_SRC_SUFFIX:=3.6.12
 PKG_VERSION:=$(PKG_SRC_PREFIX).$(PKG_SRC_SUFFIX)
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 
 PKG_MAINTAINER:=Florian Eckert <fe@dev.tdt.de>
 
-include ../../luci.mk
+# 优先从 feeds/luci 引入公共 luci.mk，若不存在则退回相对路径兼容官方 monorepo 结构
+ifneq ($(wildcard $(TOPDIR)/feeds/luci/luci.mk),)
+  include $(TOPDIR)/feeds/luci/luci.mk
+else
+  include ../../luci.mk
+endif
 
 # call BuildPackage - OpenWrt buildroot signature
